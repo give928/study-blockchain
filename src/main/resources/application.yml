@@ -1,0 +1,11 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: blockchain
+
+ethereum:
+  client-url: https://rpc.sepolia.org/
+  #  client-url: https://eth-goerli.g.alchemy.com/v2/HgJbrcgpKKTmt0Cwju8yfhryAs98Bmfg
+  private-key: 0x618ac58c4d0cebb313636633599361b3c812bf87afe63a50e25dbbe59fc70920

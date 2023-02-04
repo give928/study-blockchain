@@ -1,0 +1,55 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.0.2'
+    id 'io.spring.dependency-management' version '1.1.0'
+    id "org.web3j" version "4.9.4"
+    id "com.github.node-gradle.node" version "3.5.1"
+}
+
+group = 'com.give928'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    implementation 'org.web3j:core:4.9.6'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+}
+
+web3j {
+    generatedPackageName = 'com.give928.blockchain.ethereum.web3j.contract'
+    generatedFilesBaseDir = "$buildDir/contract"
+}
+
+node {
+    nodeProjectDir = file("node")
+}
+
+task installNodeDependencies(type: NpmTask) {
+    args = ['install', '@openzeppelin/contracts', '@openzeppelin/contracts-upgradeable']
+}
+
+solidity {
+    executable = "solc"
+    version = '0.8.17'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
