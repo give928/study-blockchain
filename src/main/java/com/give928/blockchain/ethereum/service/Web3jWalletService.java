@@ -20,7 +20,7 @@ import java.security.NoSuchProviderException;
 
 @Service
 @Slf4j
-public class Web3jWalletService implements WalletService {
+public class Web3jWalletService implements WalletService<WalletResponse> {
     public static final String HEXADECIMAL_FORMAT = "0x%s";
     private final Web3j web3j;
 
@@ -28,35 +28,41 @@ public class Web3jWalletService implements WalletService {
         this.web3j = web3j;
     }
 
+    // @formatter:off
     @Override
     public Mono<WalletResponse> createWallet(String password) {
-        return Mono.fromCallable(() -> {
+        return Mono.<WalletResponse>fromCallable(() -> {
                     try {
                         ECKeyPair ecKeyPair = Keys.createEcKeyPair();
                         WalletFile walletFile = Wallet.createStandard(password, ecKeyPair);
                         String address = walletFile.getAddress();
                         String privateKey = ecKeyPair.getPrivateKey().toString(16);
-                        return new WalletResponse(String.format(HEXADECIMAL_FORMAT, address),
-                                                  String.format(HEXADECIMAL_FORMAT, privateKey));
+                        return WalletResponse.builder()
+                                .address(String.format(HEXADECIMAL_FORMAT, address))
+                                .privateKey(String.format(HEXADECIMAL_FORMAT, privateKey))
+                                .build();
                     } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchProviderException |
                              CipherException e) {
-                        log.error("create wallet exception", e);
+                        log.error("ethereum create wallet exception", e);
                         throw new IllegalStateException(e);
                     }
                 })
                 .subscribeOn(Schedulers.boundedElastic())
-                .doOnNext(walletResponse -> log.info("create wallet. address: {}, privateKey: {}", walletResponse.address(), walletResponse.privateKey()))
+                .doOnNext(walletResponse -> log.info("ethereum create wallet. address: {}, privateKey: {}", walletResponse.getAddress(), walletResponse.getPrivateKey()))
                 .onErrorResume(throwable -> Mono.defer(() -> Mono.error(throwable)));
     }
+    // @formatter:on
 
+    // @formatter:off
     @Override
     public Mono<BigInteger> getBalance(String address) {
         return Mono.fromFuture(web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST)
                                        .sendAsync())
                 .subscribeOn(Schedulers.boundedElastic())
                 .map(EthGetBalance::getBalance)
-                .doOnNext(balance -> log.info("get balance: {}", balance));
+                .doOnNext(balance -> log.info("ethereum get balance: {}", balance));
     }
+    // @formatter:on
 
     @Override
     public Mono<BigDecimal> getCoin(String address) {

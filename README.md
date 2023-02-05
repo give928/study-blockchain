@@ -155,6 +155,8 @@
 ## 이더리움
 
 ### Web3j
+
+#### 지갑
 - 지갑 생성
   <details>
   <summary>생성 방법 접기/펼치기</summary>
@@ -221,7 +223,7 @@
   {"eth":0.025}
   ```
 
-### 거래
+#### 거래
 - 거래 생성: 다른 지갑으로 코인(wei) 보내기
   - Specifying the Chain Id on Transactions (EIP-155)
     - London fork 부터 TransactionManager 에서 chain id 를 지정해야 한다.
@@ -288,7 +290,7 @@
   {"transactionType":"TRANSACTION","transactionHash":"0xbbea4e2301c83e5dcf8f2063a470442bd229b0d35ba4020b6e3f9a1ea28c2656","status":"SUCCESS","blockNumber":2794718,"timestamp":"2023-01-30T13:54:24","from":"0xed03d7b51465553babbf80715959a3b014cd3725","to":"0xd689e6b55f603e8cfe1be7f2f0c84d82dec5d4ee","value":1,"transactionFee":52500000147000,"gasPrice":2500000007,"nonce":0}
   ```
 
-### ERC-721
+#### ERC-721
 - Contract 생성(주소를 얻기 위해 동기 처리. 1분 미만 소요)
   ```shell
   $ curl -X POST "http://127.0.0.1:8080/v1/ethereum/web3j/contracts/erc721"
@@ -443,4 +445,39 @@
   {"contractAddress":"0x1815d3d6b270f7bcd15ae57ba6c6317707e48b3c","transactionHash":"0x3ded0c14255cce3504104eee0ce4d6ddb3b9d1d8890b7ff44dcf77309d5b40f6"}
   $ curl -X GET "http://127.0.0.1:8080/v1/ethereum/web3j/contracts/erc721/transactions/0x3ded0c14255cce3504104eee0ce4d6ddb3b9d1d8890b7ff44dcf77309d5b40f6"
   {"transactionType":"TRANSACTION","transactionHash":"0x3ded0c14255cce3504104eee0ce4d6ddb3b9d1d8890b7ff44dcf77309d5b40f6","status":"SUCCESS","blockNumber":2831739,"timestamp":"2023-02-04T22:18:12","from":"0xed03d7b51465553babbf80715959a3b014cd3725","to":"0x1815d3d6b270f7bcd15ae57ba6c6317707e48b3c","tokens":[{"from":"0x0000000000000000000000000000000000000000","to":"0xed03d7b51465553babbf80715959a3b014cd3725","tokenId":3,"tokenType":"ERC721"}],"value":0,"transactionFee":935640002619792,"gasPrice":2500000007,"nonce":37,"errorMessage":""}
+  ```
+
+## 클레이튼
+
+### Caver
+
+#### 지갑
+- 지갑 생성
+  ```shell
+  $ curl -X POST "http://127.0.0.1:8080/v1/klaytn/caver/wallets" -d '{"password":"password1"}' -H "Content-Type: application/json"
+  {"address":"0x4d6fa14deda3947217f268dd3fdb41f8cead4c77","privateKey":"0x66e94f18a0e5b0f3c3325388051449e974fe79a9a58b43826a2985b392a01468","publicKey":"0x0244919d4c64ee7973ce4c084ec389258d55912b71e27a5e92ba65119efcfb946d","klaytnWalletKey":"0x66e94f18a0e5b0f3c3325388051449e974fe79a9a58b43826a2985b392a014680x000x4d6fa14deda3947217f268dd3fdb41f8cead4c77"}
+  ```
+  - 생성된 지갑의 개인키를 application.yml 파일 klaytn.private-key 설정
+    - 이후 진행할 Contract 에서 사용
+    ```yaml
+    klaytn:
+      private-key: 0x66e94f18a0e5b0f3c3325388051449e974fe79a9a58b43826a2985b392a01468
+    ```
+
+- 지갑 잔액 확인
+  ```shell
+  $ curl -X GET "http://127.0.0.1:8080/v1/klaytn/caver/wallets/0x4d6fa14deda3947217f268dd3fdb41f8cead4c77/peb"
+  {"wei":0}
+  ```
+
+- [KLAY Faucet](https://baobab.wallet.klaytn.foundation/faucet) 에서 계정 주소를 입력하고 클레이를 받는다.
+  - 24시간 마다 150 클레이를 받을 수 있다.
+
+- 지갑 확인
+  ```shell
+  $ curl -X GET "http://127.0.0.1:8080/v1/klaytn/caver/wallets/0x4d6fa14deda3947217f268dd3fdb41f8cead4c77/peb"
+  {"peb":150000000000000000000}
+  
+  $ curl -X GET "http://127.0.0.1:8080/v1/klaytn/caver/wallets/0x4d6fa14deda3947217f268dd3fdb41f8cead4c77/klay"
+  {"klay":150}
   ```

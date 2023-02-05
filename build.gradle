@@ -25,6 +25,8 @@ dependencies {
 
     implementation 'org.web3j:core:4.9.6'
 
+    implementation 'com.klaytn.caver:core:1.10.0'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 

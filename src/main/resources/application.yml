@@ -9,3 +9,12 @@ ethereum:
   client-url: https://rpc.sepolia.org/
   #  client-url: https://eth-goerli.g.alchemy.com/v2/HgJbrcgpKKTmt0Cwju8yfhryAs98Bmfg
   private-key: 0x618ac58c4d0cebb313636633599361b3c812bf87afe63a50e25dbbe59fc70920
+
+caver:
+  node-api-url: https://node-api.klaytnapi.com/v1/klaytn
+  access-key-id: KASK16TEAKY4SIIDVYUFR7BD
+  secret-access-key: 9sYVEo-xtaxcxb-kSZXt0yhXWodp35TdyfMLsTMF
+  chain-id: 1001 # e.g. 8217(Cypress) or 1001(Baobab)
+
+klaytn:
+  private-key: 0x66e94f18a0e5b0f3c3325388051449e974fe79a9a58b43826a2985b392a01468
