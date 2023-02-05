@@ -261,15 +261,14 @@
   # 받을 지갑 생성
   $ curl -X POST "http://127.0.0.1:8080/v1/ethereum/web3j/wallets" -d '{"password":"password2"}' -H "Content-Type: application/json"
   {"address":"0xd689e6b55f603e8cfe1be7f2f0c84d82dec5d4ee","privateKey":"0x8d7cdefd6e756c4a88894972f3a1f247f26eb8aa53b6891449f61dca7cf882f5"}
-  {"address":"0x98714e159c293df37a30156f20b5bbaba92bfddb","privateKey":"0xde6e54e02f65edcd946709a70e9ebf85f70fac71b3194d8a11f4eb37bfd5798"}
   
   # 잔액 0
   $ curl -X GET "http://127.0.0.1:8080/v1/ethereum/web3j/wallets/0xd689e6b55f603e8cfe1be7f2f0c84d82dec5d4ee/wei"
   {"wei":0}
   
   # 1 wei 보내기
-  $ curl -X POST "http://127.0.0.1:8080/v1/ethereum/web3j/transactions" -d '{"privateKey":"0x618ac58c4d0cebb313636633599361b3c812bf87afe63a50e25dbbe59fc70920", "to":"0xd689e6b55f603e8cfe1be7f2f0c84d82dec5d4ee", "wei":1}' -H "Content-Type: application/json"
-  {"transactionType":"TRANSACTION","transactionHash":"0xbbea4e2301c83e5dcf8f2063a470442bd229b0d35ba4020b6e3f9a1ea28c2656","status":null,"blockNumber":null,"timestamp":null,"from":null,"to":null,"value":null,"transactionFee":null,"gasPrice":null}
+  $ curl -X POST "http://127.0.0.1:8080/v1/ethereum/web3j/transactions" -d '{"privateKey":"0x618ac58c4d0cebb313636633599361b3c812bf87afe63a50e25dbbe59fc70920", "to":"0xd689e6b55f603e8cfe1be7f2f0c84d82dec5d4ee", "value":1}' -H "Content-Type: application/json"
+  {"transactionType":"TRANSACTION","transactionHash":"0xbbea4e2301c83e5dcf8f2063a470442bd229b0d35ba4020b6e3f9a1ea28c2656","status":null,"blockNumber":null,"timestamp":null,"from":null,"to":null,"value":null,"transactionFee":null,"gasPrice":null,"nonce":null,"errorMessage":null}
   
   # 잔액 1
   $ curl -X GET "http://127.0.0.1:8080/v1/ethereum/web3j/wallets/0xd689e6b55f603e8cfe1be7f2f0c84d82dec5d4ee/wei"
@@ -287,7 +286,7 @@
       - 구글링 해보니 블록의 timestamp 를 거래 시각으로 보는 것 같다.
   ```shell
   $ curl -X GET "http://127.0.0.1:8080/v1/ethereum/web3j/transactions/0xbbea4e2301c83e5dcf8f2063a470442bd229b0d35ba4020b6e3f9a1ea28c2656"
-  {"transactionType":"TRANSACTION","transactionHash":"0xbbea4e2301c83e5dcf8f2063a470442bd229b0d35ba4020b6e3f9a1ea28c2656","status":"SUCCESS","blockNumber":2794718,"timestamp":"2023-01-30T13:54:24","from":"0xed03d7b51465553babbf80715959a3b014cd3725","to":"0xd689e6b55f603e8cfe1be7f2f0c84d82dec5d4ee","value":1,"transactionFee":52500000147000,"gasPrice":2500000007,"nonce":0}
+  {"transactionType":"TRANSACTION","transactionHash":"0xbbea4e2301c83e5dcf8f2063a470442bd229b0d35ba4020b6e3f9a1ea28c2656","status":"SUCCESS","blockNumber":2794718,"timestamp":"2023-01-30T13:54:24","from":"0xed03d7b51465553babbf80715959a3b014cd3725","to":"0xd689e6b55f603e8cfe1be7f2f0c84d82dec5d4ee","value":1,"transactionFee":52500000147000,"gasPrice":2500000007,"nonce":0,"errorMessage":null}
   ```
 
 #### ERC-721
@@ -366,7 +365,7 @@
 - NFT mint transaction 조회
   ```shell
   $ curl -X GET "http://127.0.0.1:8080/v1/ethereum/web3j/contracts/erc721/transactions/0xcd6537207e23cd35bab12b37c7c95a087a5e08cda973526c40b22ffe63134e71"
-  {"transactionType":"TRANSACTION","transactionHash":"0xcd6537207e23cd35bab12b37c7c95a087a5e08cda973526c40b22ffe63134e71","status":"SUCCESS","blockNumber":2830151,"timestamp":"2023-02-04T16:49:24","from":"0xed03d7b51465553babbf80715959a3b014cd3725","to":"0x1815d3d6b270f7bcd15ae57ba6c6317707e48b3c","tokens":[{"from":"0x0000000000000000000000000000000000000000","to":"0xed03d7b51465553babbf80715959a3b014cd3725","tokenId":1,"tokenType":"ERC721"}],"value":0,"transactionFee":947081522739492,"gasPrice":2420000007,"nonce":30}
+  {"transactionType":"TRANSACTION","transactionHash":"0xcd6537207e23cd35bab12b37c7c95a087a5e08cda973526c40b22ffe63134e71","status":"SUCCESS","blockNumber":2830151,"timestamp":"2023-02-04T16:49:24","from":"0xed03d7b51465553babbf80715959a3b014cd3725","to":"0x1815d3d6b270f7bcd15ae57ba6c6317707e48b3c","tokens":[{"from":"0x0000000000000000000000000000000000000000","to":"0xed03d7b51465553babbf80715959a3b014cd3725","tokenId":1,"tokenType":"ERC721"}],"value":0,"transactionFee":947081522739492,"gasPrice":2420000007,"nonce":30,"errorMessage":null}
   ```
 - 지갑 주소의 NFT 잔액 조회
   ```shell
@@ -390,7 +389,7 @@
 
   # NFT 소유권 거래 조회
   $ curl -X GET "http://127.0.0.1:8080/v1/ethereum/web3j/contracts/erc721/transactions/0x1ad2c95d71dfb2ad876e0e90b3e1a3215605a616c7ecd54f3f08dd421152839e"
-  {"transactionType":"TRANSACTION","transactionHash":"0x1ad2c95d71dfb2ad876e0e90b3e1a3215605a616c7ecd54f3f08dd421152839e","status":"SUCCESS","blockNumber":2830167,"timestamp":"2023-02-04T16:52:36","from":"0xed03d7b51465553babbf80715959a3b014cd3725","to":"0x1815d3d6b270f7bcd15ae57ba6c6317707e48b3c","tokens":[{"from":"0xed03d7b51465553babbf80715959a3b014cd3725","to":"0xd689e6b55f603e8cfe1be7f2f0c84d82dec5d4ee","tokenId":1,"tokenType":"ERC721"}],"value":0,"transactionFee":162087250000000,"gasPrice":2650000000,"nonce":31}
+  {"transactionType":"TRANSACTION","transactionHash":"0x1ad2c95d71dfb2ad876e0e90b3e1a3215605a616c7ecd54f3f08dd421152839e","status":"SUCCESS","blockNumber":2830167,"timestamp":"2023-02-04T16:52:36","from":"0xed03d7b51465553babbf80715959a3b014cd3725","to":"0x1815d3d6b270f7bcd15ae57ba6c6317707e48b3c","tokens":[{"from":"0xed03d7b51465553babbf80715959a3b014cd3725","to":"0xd689e6b55f603e8cfe1be7f2f0c84d82dec5d4ee","tokenId":1,"tokenType":"ERC721"}],"value":0,"transactionFee":162087250000000,"gasPrice":2650000000,"nonce":31,"errorMessage":null}
 
   # NFT 소유자 조회(소유자 0xed03d7b51465553babbf80715959a3b014cd3725 -> 0xd689e6b55f603e8cfe1be7f2f0c84d82dec5d4ee 변경됨)
   $ curl -X GET "http://127.0.0.1:8080/v1/ethereum/web3j/contracts/erc721/0x1815d3d6b270f7bcd15ae57ba6c6317707e48b3c/1/owner"
@@ -451,6 +450,8 @@
 
 ### Caver
 
+- 공식 예제: https://github.com/klaytn/caver-java-examples
+
 #### 지갑
 - 지갑 생성
   ```shell
@@ -467,7 +468,7 @@
 - 지갑 잔액 확인
   ```shell
   $ curl -X GET "http://127.0.0.1:8080/v1/klaytn/caver/wallets/0x4d6fa14deda3947217f268dd3fdb41f8cead4c77/peb"
-  {"wei":0}
+  {"peb":0}
   ```
 
 - [KLAY Faucet](https://baobab.wallet.klaytn.foundation/faucet) 에서 계정 주소를 입력하고 클레이를 받는다.
@@ -480,4 +481,36 @@
   
   $ curl -X GET "http://127.0.0.1:8080/v1/klaytn/caver/wallets/0x4d6fa14deda3947217f268dd3fdb41f8cead4c77/klay"
   {"klay":150}
+  ```
+
+#### 거래
+- 거래 생성: 다른 지갑으로 코인(peb) 보내기
+  ```shell
+  # 받을 지갑 생성
+  $ curl -X POST "http://127.0.0.1:8080/v1/klaytn/caver/wallets" -d '{"password":"password2"}' -H "Content-Type: application/json"
+  {"address":"0x792396164d09354ecf19e920bed3eab382d3a5b3","privateKey":"0xaade12a08a9fbb0665386f6c6491316bd66059aeeff9be29950d4b543f1b9ba5","publicKey":"0x0300cd00aebdfb2be78c071bbca7abf0968ad7954100f87f601964ce49cf00343c","klaytnWalletKey":"0xaade12a08a9fbb0665386f6c6491316bd66059aeeff9be29950d4b543f1b9ba50x000x792396164d09354ecf19e920bed3eab382d3a5b3"}
+  
+  # 잔액 0
+  $ curl -X GET "http://127.0.0.1:8080/v1/klaytn/caver/wallets/0x792396164d09354ecf19e920bed3eab382d3a5b3/peb"
+  {"peb":0}
+  
+  # 1 peb 보내기
+  $ curl -X POST "http://127.0.0.1:8080/v1/klaytn/caver/transactions" -d '{"privateKey":"0x66e94f18a0e5b0f3c3325388051449e974fe79a9a58b43826a2985b392a01468", "to":"0x792396164d09354ecf19e920bed3eab382d3a5b3", "value":1}' -H "Content-Type: application/json"
+  {"transactionType":"TRANSACTION","transactionHash":"0xddeab238f621cde9f00bd67f25c4bc1b665d704da5cd112f37f4a998ff93ca11","status":null,"blockNumber":null,"timestamp":null,"from":null,"to":null,"value":null,"transactionFee":null,"gasPrice":null,"nonce":null,"errorMessage":null}
+  
+  # 잔액 1
+  $ curl -X GET "http://127.0.0.1:8080/v1/klaytn/caver/wallets/0x792396164d09354ecf19e920bed3eab382d3a5b3/peb"
+  {"peb":1}
+  ```
+
+- 거래 조회
+  - https://baobab.scope.klaytn.com/tx/0xddeab238f621cde9f00bd67f25c4bc1b665d704da5cd112f37f4a998ff93ca11 에서도 확인 가능
+  - 동일하게 정보를 출력해주려고 하니 3번이나 조회가 필요하다.
+    1. web3j.ethGetTransactionReceipt
+    - timestamp 제외한 모든 정보를 사용한다.
+    2. web3j.ethGetBlockByHash
+    - 구글링 해보니 블록의 timestamp 를 거래 시각으로 보는 것 같다.
+  ```shell
+  $ curl -X GET "http://127.0.0.1:8080/v1/klaytn/caver/transactions/0xddeab238f621cde9f00bd67f25c4bc1b665d704da5cd112f37f4a998ff93ca11"
+  {"transactionType":"TRANSACTION","transactionHash":"0xddeab238f621cde9f00bd67f25c4bc1b665d704da5cd112f37f4a998ff93ca11","status":"SUCCESS","blockNumber":114012704,"timestamp":"2023-02-05T18:32:39","from":"0x4d6fa14deda3947217f268dd3fdb41f8cead4c77","to":"0x792396164d09354ecf19e920bed3eab382d3a5b3","value":1,"transactionFee":525000000000000,"gasPrice":50000000000,"nonce":0,"errorMessage":null}
   ```
