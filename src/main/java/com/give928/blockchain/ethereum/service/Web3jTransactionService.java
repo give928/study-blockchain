@@ -3,7 +3,6 @@ package com.give928.blockchain.ethereum.service;
 import com.give928.blockchain.common.domain.TransactionType;
 import com.give928.blockchain.common.request.TransactionRequest;
 import com.give928.blockchain.common.response.TransactionResponse;
-import com.give928.blockchain.common.service.TransactionResponseMapper;
 import com.give928.blockchain.common.service.TransactionService;
 import com.give928.blockchain.ethereum.domain.Web3jTransactionHelper;
 import com.give928.blockchain.ethereum.exception.Web3jErrorException;
@@ -34,11 +33,11 @@ import java.util.Optional;
 public class Web3jTransactionService implements TransactionService {
     private final Web3j web3j;
     private final Web3jCommonService web3JCommonService;
-    private final TransactionResponseMapper transactionResponseMapper;
+    private final Web3jTransactionResponseMapper transactionResponseMapper;
     private final WebClient tenderlyApiWebClient;
 
     public Web3jTransactionService(Web3j web3j, Web3jCommonService web3JCommonService,
-                                   TransactionResponseMapper transactionResponseMapper,
+                                   Web3jTransactionResponseMapper transactionResponseMapper,
                                    WebClient tenderlyApiWebClient) {
         this.web3j = web3j;
         this.web3JCommonService = web3JCommonService;
@@ -52,8 +51,8 @@ public class Web3jTransactionService implements TransactionService {
         return web3JCommonService.newPollingTransactionHelper(transactionRequest.getPrivateKey())
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(web3jTransactionHelper -> sendTransaction(transactionRequest, web3jTransactionHelper))
-                .doOnNext(transactionReceipt -> log.info("mint transaction receipt: {}", transactionReceipt.toString()))
-                .map(transactionReceipt -> transactionResponseMapper.map(TransactionType.TRANSACTION, transactionReceipt.getTransactionHash()))
+                .doOnNext(transactionReceipt -> log.info("send transaction receipt: {}", transactionReceipt.toString()))
+                .map(transactionReceipt -> transactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, transactionReceipt.getTransactionHash()))
                 .onErrorResume(throwable -> Mono.defer(() -> Mono.error(throwable)));
     }
     // @formatter:on
@@ -84,7 +83,7 @@ public class Web3jTransactionService implements TransactionService {
                 .flatMap(web3jTransactionHelper -> sendSignedTransaction(transactionRequest, web3jTransactionHelper))
                 .doOnNext(ethSendTransaction -> log.info(
                         "transaction hash: {}", ethSendTransaction.getTransactionHash()))
-                .map(ethSendTransaction -> transactionResponseMapper.map(TransactionType.TRANSACTION, ethSendTransaction.getTransactionHash()))
+                .map(ethSendTransaction -> transactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, ethSendTransaction.getTransactionHash()))
                 .onErrorResume(throwable -> Mono.defer(() -> Mono.error(throwable)));
     }
     // @formatter:on
@@ -118,12 +117,12 @@ public class Web3jTransactionService implements TransactionService {
     @Override
     public Mono<TransactionResponse> getTransaction(String transactionHash) {
         return getEthTransactionAndReceiptAndBlock(transactionHash)
-                .map(tuple -> toTransactionResponse(transactionHash, tuple.getT1(), tuple.getT2(), tuple.getT3(), tuple.getT4()));
+                .map(tuple -> toTransactionResponse(transactionHash, tuple.getT1(), tuple.getT2(), tuple.getT3(), tuple.getT4().orElse(null)));
     }
     // @formatter:on
 
     // @formatter:off
-    public Mono<Tuple4<EthTransaction, EthGetTransactionReceipt, EthBlock, String>> getEthTransactionAndReceiptAndBlock(String transactionHash) {
+    public Mono<Tuple4<EthTransaction, EthGetTransactionReceipt, EthBlock, Optional<String>>> getEthTransactionAndReceiptAndBlock(String transactionHash) {
         return Mono.zip(getEthTransaction(transactionHash), getEthGetTransactionReceipt(transactionHash))
                 .subscribeOn(Schedulers.boundedElastic())
                 .doOnNext(tuple -> log.info("transaction receipt: {}", tuple.getT2().getResult() != null ? tuple.getT2().getResult().toString() : null))
@@ -142,9 +141,9 @@ public class Web3jTransactionService implements TransactionService {
                             !ethGetTransactionReceipt.getResult().isStatusOK()) {
                         Transaction transaction = ethTransaction.getResult();
                         return getErrorMessage(transaction.getChainId(), transaction.getHash())
-                                .map(errorMessage -> Tuples.of(tuple.getT1(), tuple.getT2(), tuple.getT3(), errorMessage));
+                                .map(errorMessage -> Tuples.of(tuple.getT1(), tuple.getT2(), tuple.getT3(), Optional.of(errorMessage)));
                     }
-                    return Mono.just(Tuples.of(tuple.getT1(), tuple.getT2(), tuple.getT3(), ""));
+                    return Mono.just(Tuples.of(tuple.getT1(), tuple.getT2(), tuple.getT3(), Optional.<String>empty()));
                 })
                 .onErrorResume(throwable -> Mono.defer(() -> Mono.error(throwable)));
     }
@@ -206,18 +205,18 @@ public class Web3jTransactionService implements TransactionService {
         // 거래가 조회되지 않음(Dropped and Replaced)
         Optional<Transaction> transactionOptional = ethTransaction.getTransaction();
         if (ethTransaction.hasError() || transactionOptional.isEmpty()) {
-            return transactionResponseMapper.map(TransactionType.TRANSACTION, transactionHash);
+            return transactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, transactionHash);
         }
         Transaction transaction = transactionOptional.get();
 
         // 거래 영수증이 조회되지 않음(Pending or Indexing, 아직 거래가 처리되지 않음)
         Optional<TransactionReceipt> transactionReceiptOptional = ethGetTransactionReceipt.getTransactionReceipt();
         if (ethGetTransactionReceipt.hasError() || transactionReceiptOptional.isEmpty()) {
-            return transactionResponseMapper.map(TransactionType.TRANSACTION, transaction);
+            return transactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, transaction);
         }
 
         // Success or Failed, 블록 정보를 조회해서 블록의 timestamp 를 거래 시각으로 설정
-        return transactionResponseMapper.map(TransactionType.TRANSACTION, transaction, transactionReceiptOptional.get(),
-                                             ethBlock.getBlock(), errorMessage);
+        return transactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, transaction, transactionReceiptOptional.get(),
+                                                        ethBlock.getBlock(), errorMessage);
     }
 }

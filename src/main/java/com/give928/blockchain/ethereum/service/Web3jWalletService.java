@@ -43,12 +43,12 @@ public class Web3jWalletService implements WalletService<WalletResponse> {
                                 .build();
                     } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchProviderException |
                              CipherException e) {
-                        log.error("ethereum create wallet exception", e);
+                        log.error("create wallet exception", e);
                         throw new IllegalStateException(e);
                     }
                 })
                 .subscribeOn(Schedulers.boundedElastic())
-                .doOnNext(walletResponse -> log.info("ethereum create wallet. address: {}, privateKey: {}", walletResponse.getAddress(), walletResponse.getPrivateKey()))
+                .doOnNext(walletResponse -> log.info("create wallet. address: {}, privateKey: {}", walletResponse.getAddress(), walletResponse.getPrivateKey()))
                 .onErrorResume(throwable -> Mono.defer(() -> Mono.error(throwable)));
     }
     // @formatter:on
@@ -60,7 +60,7 @@ public class Web3jWalletService implements WalletService<WalletResponse> {
                                        .sendAsync())
                 .subscribeOn(Schedulers.boundedElastic())
                 .map(EthGetBalance::getBalance)
-                .doOnNext(balance -> log.info("ethereum get balance: {}", balance));
+                .doOnNext(balance -> log.info("address: {}, balance: {}", address, balance));
     }
     // @formatter:on
 

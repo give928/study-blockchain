@@ -1,28 +1,27 @@
-package com.give928.blockchain.common.service;
+package com.give928.blockchain.ethereum.service;
 
 import com.give928.blockchain.common.domain.TransactionStatus;
 import com.give928.blockchain.common.domain.TransactionType;
 import com.give928.blockchain.common.response.TransactionResponse;
+import com.give928.blockchain.common.util.FeeUtil;
+import com.give928.blockchain.common.util.HexadecimalUtil;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
-import java.math.BigInteger;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.TimeZone;
 
 @Service
-public class TransactionResponseMapper implements TransactionMapper<TransactionResponse> {
-    public TransactionResponse map(TransactionType transactionType, String transactionHash) {
+public class Web3jTransactionResponseMapper implements Web3jResponseMapper<TransactionResponse> {
+    public TransactionResponse mapTransaction(TransactionType transactionType, String transactionHash) {
         return TransactionResponse.builder()
                 .transactionType(transactionType)
                 .transactionHash(transactionHash)
                 .build();
     }
 
-    public TransactionResponse map(TransactionType transactionType, Transaction transaction) {
+    public TransactionResponse mapTransaction(TransactionType transactionType, Transaction transaction) {
         return TransactionResponse.builder()
                 .transactionType(transactionType)
                 .transactionHash(transaction.getHash())
@@ -35,32 +34,23 @@ public class TransactionResponseMapper implements TransactionMapper<TransactionR
                 .build();
     }
 
-    public TransactionResponse map(TransactionType transactionType, Transaction transaction,
-                                   TransactionReceipt transactionReceipt, EthBlock.Block block,
-                                   String errorMessage) {
-        BigInteger transactionFee = null;
-        if (transaction.getGasPrice() != null && transactionReceipt.getGasUsed() != null) {
-            transactionFee = transaction.getGasPrice().multiply(transactionReceipt.getGasUsed());
-        }
+    public TransactionResponse mapTransaction(TransactionType transactionType, Transaction transaction,
+                                              TransactionReceipt transactionReceipt, EthBlock.Block block,
+                                              String errorMessage) {
         LocalDateTime timestamp = null;
         if (block != null && block.getTimestamp() != null) {
-            timestamp = LocalDateTime.ofInstant(Instant.ofEpochMilli(block.getTimestamp().longValueExact() * 1_000),
-                                                TimeZone.getDefault().toZoneId());
-        }
-        TransactionStatus status = TransactionStatus.FAIL;
-        if (transactionReceipt.isStatusOK()) {
-            status = TransactionStatus.SUCCESS;
+            timestamp = HexadecimalUtil.toLocalDateTime(block.getTimestamp());
         }
         return TransactionResponse.builder()
                 .transactionType(transactionType)
                 .transactionHash(transaction.getHash())
-                .status(status)
+                .status(TransactionStatus.find(transactionReceipt.isStatusOK()))
                 .blockNumber(transaction.getBlockNumber())
                 .timestamp(timestamp)
                 .from(transaction.getFrom())
                 .to(transaction.getTo())
                 .value(transaction.getValue())
-                .transactionFee(transactionFee)
+                .transactionFee(FeeUtil.calculate(transactionReceipt.getGasUsed(), transactionReceipt.getEffectiveGasPrice()))
                 .gasPrice(transaction.getGasPrice())
                 .nonce(transaction.getNonce())
                 .errorMessage(errorMessage)

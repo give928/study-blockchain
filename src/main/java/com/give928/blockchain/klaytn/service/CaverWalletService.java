@@ -39,7 +39,7 @@ public class CaverWalletService implements WalletService<KlaytnWalletResponse> {
                 })
                 .subscribeOn(Schedulers.boundedElastic())
                 .doOnNext(walletResponse -> log.info(
-                        "klaytn create wallet. address: {}, privateKey: {}, publicKey: {}, klaytnWalletKey: {}",
+                        "create wallet. address: {}, privateKey: {}, publicKey: {}, klaytnWalletKey: {}",
                         walletResponse.getAddress(), walletResponse.getPrivateKey(), walletResponse.getPublicKey(),
                         walletResponse.getKlaytnWalletKey()))
                 .onErrorResume(throwable -> Mono.defer(() -> Mono.error(throwable)));
@@ -52,7 +52,7 @@ public class CaverWalletService implements WalletService<KlaytnWalletResponse> {
                                        .sendAsync())
                 .subscribeOn(Schedulers.boundedElastic())
                 .map(Quantity::getValue)
-                .doOnNext(balance -> log.info("klaytn get balance: {}", balance));
+                .doOnNext(balance -> log.info("address: {}, balance: {}", address, balance));
     }
 
     @Override
