@@ -278,11 +278,11 @@
 - 거래 조회
   - https://sepolia.etherscan.io/tx/0xbbea4e2301c83e5dcf8f2063a470442bd229b0d35ba4020b6e3f9a1ea28c2656 에서도 확인 가능
   - 동일하게 정보를 출력해주려고 하니 3번이나 조회가 필요하다.
-    1. web3j.ethGetTransactionByHash
+    1. web3j.ethGetTransactionByHash(String transactionHash)
       - status, timestamp 를 제외한 정보는 여기서 확인 가능하다.
-    2. web3j.ethGetTransactionReceipt
+    2. web3j.ethGetTransactionReceipt(String transactionHash)
       - 여기서 status 만 사용한다.
-    3. web3j.ethGetBlockByHash
+    3. web3j.ethGetBlockByHash(String blockHash)
       - 구글링 해보니 블록의 timestamp 를 거래 시각으로 보는 것 같다.
   ```shell
   $ curl -X GET "http://127.0.0.1:8080/v1/ethereum/web3j/transactions/0xbbea4e2301c83e5dcf8f2063a470442bd229b0d35ba4020b6e3f9a1ea28c2656"
@@ -505,10 +505,10 @@
 
 - 거래 조회
   - https://baobab.scope.klaytn.com/tx/0xddeab238f621cde9f00bd67f25c4bc1b665d704da5cd112f37f4a998ff93ca11 에서도 확인 가능
-  - 동일하게 정보를 출력해주려고 하니 3번이나 조회가 필요하다.
-    1. web3j.ethGetTransactionReceipt
+  - 동일하게 정보를 출력해주려고 하니 2번 조회가 필요하다.
+    1. caver.rpc.klay.getTransactionReceipt(String transactionHash)
     - timestamp 제외한 모든 정보를 사용한다.
-    2. web3j.ethGetBlockByHash
+    2. caver.rpc.klay.getBlockByHash(String blockHash)
     - 구글링 해보니 블록의 timestamp 를 거래 시각으로 보는 것 같다.
   ```shell
   $ curl -X GET "http://127.0.0.1:8080/v1/klaytn/caver/transactions/0xddeab238f621cde9f00bd67f25c4bc1b665d704da5cd112f37f4a998ff93ca11"
