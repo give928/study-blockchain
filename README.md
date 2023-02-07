@@ -142,7 +142,7 @@
   - NFT
     - ERC721 기준으로 코드 작성
     - ERC1155, ERC1155Upgradeable sol 파일 작성. 나중에 학습.
-- 클레이트
+- 클레이튼
   - caver-java 1.10.0
     - https://ko.docs.klaytn.foundation/content/dapp/sdk/caver-java
   - JSON-RPC API
