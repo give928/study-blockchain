@@ -71,8 +71,8 @@ public class Web3jContractERC721Service implements ContractService {
         log.info("deploy contract. from: {}, nonce: {}, gasPrice: {}, gasLimit: {}",
                  fastRawTransactionManager.getFromAddress(), fastRawTransactionManager.getCurrentNonce(), staticGasProvider.getGasPrice(), staticGasProvider.getGasLimit());
 
-        return Mono.fromFuture(NFTERC721.deploy(web3j, fastRawTransactionManager, staticGasProvider)
-                                       .sendAsync());
+        return Mono.from(NFTERC721.deploy(web3j, fastRawTransactionManager, staticGasProvider)
+                                 .flowable());
     }
     // @formatter:on
 
@@ -126,8 +126,8 @@ public class Web3jContractERC721Service implements ContractService {
                     .encodeToString(json.getBytes());
             log.info("mint nft. contractAddress: {}, data: {}, encoding json: {}", nfterc721.getContractAddress(), json,
                      encodingJson);
-            return Mono.fromFuture(nfterc721.mint(String.format(TOKEN_URI_FORMAT, encodingJson))
-                                           .sendAsync());
+            return Mono.from(nfterc721.mint(String.format(TOKEN_URI_FORMAT, encodingJson))
+                                     .flowable());
         } catch (JsonProcessingException e) {
             return Mono.error(new IllegalArgumentException(e));
         }
@@ -164,22 +164,22 @@ public class Web3jContractERC721Service implements ContractService {
 
     public Mono<BalanceResponse> balanceOf(String contractAddress, String address) {
         return loadViewNFTERC721(contractAddress)
-                .flatMap(nfterc721 -> Mono.fromFuture(nfterc721.balanceOf(address)
-                                                              .sendAsync()))
+                .flatMap(nfterc721 -> Mono.from(nfterc721.balanceOf(address)
+                                                        .flowable()))
                 .map(BalanceResponse::new);
     }
 
     public Mono<OwnerResponse> ownerOf(String contractAddress, BigInteger tokenId) {
         return loadViewNFTERC721(contractAddress)
-                .flatMap(nfterc721 -> Mono.fromFuture(nfterc721.ownerOf(tokenId)
-                                                              .sendAsync()))
+                .flatMap(nfterc721 -> Mono.from(nfterc721.ownerOf(tokenId)
+                                                        .flowable()))
                 .map(OwnerResponse::new);
     }
 
     public Mono<String> tokenURI(String contractAddress, BigInteger tokenId) {
         return loadViewNFTERC721(contractAddress)
-                .flatMap(nfterc721 -> Mono.fromFuture(nfterc721.tokenURI(tokenId)
-                                                              .sendAsync()))
+                .flatMap(nfterc721 -> Mono.from(nfterc721.tokenURI(tokenId)
+                                                        .flowable()))
                 .map(tokenURI -> new String(Base64.getDecoder()
                                                     .decode(tokenURI.replace(TOKEN_URI_PREFIX, "")),
                                             StandardCharsets.UTF_8));
@@ -188,10 +188,11 @@ public class Web3jContractERC721Service implements ContractService {
     public Mono<ContractTransactionResponse> safeTransferFrom(String contractAddress, BigInteger tokenId,
                                                               ContractTokenTransactionRequest contractTokenTransactionRequest) {
         return loadTransactionNFTERC721(contractAddress)
-                .flatMap(nfterc721 -> Mono.fromFuture(
+                .flatMap(nfterc721 -> Mono.from(
                         nfterc721.safeTransferFrom(contractTokenTransactionRequest.getFrom(),
-                                                   contractTokenTransactionRequest.getTo(), tokenId)
-                                .sendAsync()))
+                                                   contractTokenTransactionRequest.getTo(),
+                                                   tokenId)
+                                .flowable()))
                 .doOnNext(transactionReceipt -> log.info("safe transfer token transaction receipt: {}",
                                                          transactionReceipt.toString()))
                 .map(transactionReceipt -> contractTransactionResponseMapper.mapTransaction(TransactionType.TRANSACTION,
@@ -200,14 +201,14 @@ public class Web3jContractERC721Service implements ContractService {
 
     public Mono<Boolean> paused(String contractAddress) {
         return loadViewNFTERC721(contractAddress)
-                .flatMap(nfterc721 -> Mono.fromFuture(nfterc721.paused()
-                                                              .sendAsync()));
+                .flatMap(nfterc721 -> Mono.from(nfterc721.paused()
+                                                        .flowable()));
     }
 
     public Mono<ContractTransactionResponse> burn(String contractAddress, BigInteger tokenId) {
         return loadTransactionNFTERC721(contractAddress)
-                .flatMap(nfterc721 -> Mono.fromFuture(nfterc721.burn(tokenId)
-                                                              .sendAsync()))
+                .flatMap(nfterc721 -> Mono.from(nfterc721.burn(tokenId)
+                                                        .flowable()))
                 .doOnNext(transactionReceipt -> log.info("burn token transaction receipt: {}", transactionReceipt.toString()))
                 .map(transactionReceipt -> contractTransactionResponseMapper.mapTransaction(TransactionType.BURN,
                                                                                             transactionReceipt.getTransactionHash()));
@@ -216,8 +217,8 @@ public class Web3jContractERC721Service implements ContractService {
 
     public Mono<ContractTransactionResponse> pause(String contractAddress) {
         return loadTransactionNFTERC721(contractAddress)
-                .flatMap(nfterc721 -> Mono.fromFuture(nfterc721.pause()
-                                                              .sendAsync()))
+                .flatMap(nfterc721 -> Mono.from(nfterc721.pause()
+                                                        .flowable()))
                 .doOnNext(transactionReceipt -> log.info("pause contract transaction receipt: {}", transactionReceipt.toString()))
                 .map(transactionReceipt -> contractTransactionResponseMapper.mapTransaction(TransactionType.PAUSE,
                                                                                             transactionReceipt.getTransactionHash()));
@@ -225,8 +226,8 @@ public class Web3jContractERC721Service implements ContractService {
 
     public Mono<ContractTransactionResponse> unpause(String contractAddress) {
         return loadTransactionNFTERC721(contractAddress)
-                .flatMap(nfterc721 -> Mono.fromFuture(nfterc721.unpause()
-                                                              .sendAsync()))
+                .flatMap(nfterc721 -> Mono.from(nfterc721.unpause()
+                                                        .flowable()))
                 .doOnNext(transactionReceipt -> log.info("unpause contract transaction receipt: {}", transactionReceipt.toString()))
                 .map(transactionReceipt -> contractTransactionResponseMapper.mapTransaction(TransactionType.UNPAUSE,
                                                                                             transactionReceipt.getTransactionHash()));

@@ -48,8 +48,8 @@ public class CaverWalletService implements WalletService<KlaytnWalletResponse> {
 
     @Override
     public Mono<BigInteger> getBalance(String address) {
-        return Mono.fromFuture(caver.rpc.klay.getBalance(address)
-                                       .sendAsync())
+        return Mono.from(caver.rpc.klay.getBalance(address)
+                                 .flowable())
                 .subscribeOn(Schedulers.boundedElastic())
                 .map(Quantity::getValue)
                 .doOnNext(balance -> log.info("address: {}, balance: {}", address, balance));

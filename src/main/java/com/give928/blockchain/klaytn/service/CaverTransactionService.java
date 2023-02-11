@@ -75,8 +75,8 @@ public class CaverTransactionService implements TransactionService {
         }
 
         // Klaytn으로 트랜잭션 전송
-        return Mono.fromFuture(caver.rpc.klay.sendRawTransaction(valueTransfer.getRawTransaction())
-                                       .sendAsync());
+        return Mono.from(caver.rpc.klay.sendRawTransaction(valueTransfer.getRawTransaction())
+                                 .flowable());
     }
 
     private static BigInteger getGas(TransactionRequest transactionRequest) {
@@ -99,8 +99,8 @@ public class CaverTransactionService implements TransactionService {
     }
 
     private Mono<TransactionReceipt.TransactionReceiptData> getTransactionReceipt(String transactionHash) {
-        return Mono.fromFuture(caver.rpc.klay.getTransactionReceipt(transactionHash)
-                                       .sendAsync())
+        return Mono.from(caver.rpc.klay.getTransactionReceipt(transactionHash)
+                                 .flowable())
                 .map(transactionReceipt -> {
                     if (transactionReceipt.hasError()) {
                         throw new Web3jErrorException(transactionReceipt.getError());
@@ -111,8 +111,8 @@ public class CaverTransactionService implements TransactionService {
     }
 
     private Mono<Block.BlockData> getBlock(String blockHash) {
-        return Mono.fromFuture(caver.rpc.klay.getBlockByHash(blockHash)
-                                       .sendAsync())
+        return Mono.from(caver.rpc.klay.getBlockByHash(blockHash)
+                                 .flowable())
                 .map(block -> {
                     if (block.hasError()) {
                         throw new Web3jErrorException(block.getError());

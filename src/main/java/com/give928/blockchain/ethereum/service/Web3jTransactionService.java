@@ -70,9 +70,9 @@ public class Web3jTransactionService implements TransactionService {
         log.info("send transaction from: {}, to: {}, nonce: {}, wei: {}, gasPrice: {}, gasLimit: {}",
                  fastRawTransactionManager.getFromAddress(), to, fastRawTransactionManager.getCurrentNonce(), value, gasPrice, gasLimit);
 
-        return Mono.fromFuture(new Transfer(web3j, fastRawTransactionManager)
+        return Mono.from(new Transfer(web3j, fastRawTransactionManager)
                                        .sendFunds(to, value, Convert.Unit.WEI, gasPrice, gasLimit)
-                                       .sendAsync());
+                                       .flowable());
     }
     // @formatter:on
 
@@ -90,27 +90,25 @@ public class Web3jTransactionService implements TransactionService {
 
     private Mono<EthSendTransaction> sendSignedTransaction(TransactionRequest transactionRequest,
                                                            Web3jTransactionHelper web3jTransactionHelper) {
-        return Mono.fromFuture(() -> {
-            Credentials credentials = Credentials.create(transactionRequest.getPrivateKey());
-            String to = transactionRequest.getTo();
-            BigInteger value = transactionRequest.getValue();
-            long chainId = web3jTransactionHelper.getChainId()
-                    .longValue();
-            BigInteger nonce = web3jTransactionHelper.getNonce();
-            BigInteger gasPrice = web3jTransactionHelper.getGasPrice();
-            BigInteger gasLimit = web3jTransactionHelper.getGasLimit();
+        return Mono.fromCallable(() -> {
+                    Credentials credentials = Credentials.create(transactionRequest.getPrivateKey());
+                    String to = transactionRequest.getTo();
+                    BigInteger value = transactionRequest.getValue();
+                    long chainId = web3jTransactionHelper.getChainId()
+                            .longValue();
+                    BigInteger nonce = web3jTransactionHelper.getNonce();
+                    BigInteger gasPrice = web3jTransactionHelper.getGasPrice();
+                    BigInteger gasLimit = web3jTransactionHelper.getGasLimit();
 
-            log.info(
-                    "send transaction from: {}, to: {}, wei: {}, chainId: {}, nonce: {}, gasLimit: {}, gasPrice: {}",
-                    credentials.getAddress(), to, value, chainId, nonce, gasLimit, gasPrice);
+                    log.info("send transaction from: {}, to: {}, wei: {}, chainId: {}, nonce: {}, gasLimit: {}, gasPrice: {}",
+                             credentials.getAddress(), to, value, chainId, nonce, gasLimit, gasPrice);
 
-            RawTransaction rawTransaction = RawTransaction.createEtherTransaction(nonce, gasPrice, gasLimit, to,
-                                                                                  value);
-            byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, chainId, credentials);
-
-            return web3j.ethSendRawTransaction(Numeric.toHexString(signedMessage))
-                    .sendAsync();
-        });
+                    RawTransaction rawTransaction = RawTransaction.createEtherTransaction(nonce, gasPrice, gasLimit, to,
+                                                                                          value);
+                    return TransactionEncoder.signMessage(rawTransaction, chainId, credentials);
+                })
+                .flatMap(signedMessage -> Mono.from(web3j.ethSendRawTransaction(Numeric.toHexString(signedMessage))
+                                                            .flowable()));
     }
 
     // @formatter:off
@@ -159,8 +157,8 @@ public class Web3jTransactionService implements TransactionService {
 
     // @formatter:off
     private Mono<EthTransaction> getEthTransaction(String transactionHash) {
-        return Mono.fromFuture(web3j.ethGetTransactionByHash(transactionHash)
-                                       .sendAsync())
+        return Mono.from(web3j.ethGetTransactionByHash(transactionHash)
+                                 .flowable())
                 .map(ethTransaction -> {
                     if (ethTransaction.hasError()) {
                         throw new Web3jErrorException(ethTransaction.getError());
@@ -173,8 +171,8 @@ public class Web3jTransactionService implements TransactionService {
 
     // @formatter:off
     private Mono<EthGetTransactionReceipt> getEthGetTransactionReceipt(String transactionHash) {
-        return Mono.fromFuture(web3j.ethGetTransactionReceipt(transactionHash)
-                                       .sendAsync())
+        return Mono.from(web3j.ethGetTransactionReceipt(transactionHash)
+                                 .flowable())
                 .map(ethGetTransactionReceipt -> {
                     if (ethGetTransactionReceipt.hasError()) {
                         throw new Web3jErrorException(ethGetTransactionReceipt.getError());
@@ -187,8 +185,8 @@ public class Web3jTransactionService implements TransactionService {
 
     // @formatter:off
     private Mono<EthBlock> getEthBlock(String blockHash) {
-        return Mono.fromFuture(web3j.ethGetBlockByHash(blockHash, false)
-                                       .sendAsync())
+        return Mono.from(web3j.ethGetBlockByHash(blockHash, false)
+                                 .flowable())
                 .map(ethBlock -> {
                     if (ethBlock.hasError()) {
                         throw new Web3jErrorException(ethBlock.getError());
@@ -216,7 +214,8 @@ public class Web3jTransactionService implements TransactionService {
         }
 
         // Success or Failed, 블록 정보를 조회해서 블록의 timestamp 를 거래 시각으로 설정
-        return transactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, transaction, transactionReceiptOptional.get(),
+        return transactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, transaction,
+                                                        transactionReceiptOptional.get(),
                                                         ethBlock.getBlock(), errorMessage);
     }
 }

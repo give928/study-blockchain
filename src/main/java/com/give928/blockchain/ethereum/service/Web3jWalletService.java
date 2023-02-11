@@ -56,8 +56,8 @@ public class Web3jWalletService implements WalletService<WalletResponse> {
     // @formatter:off
     @Override
     public Mono<BigInteger> getBalance(String address) {
-        return Mono.fromFuture(web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST)
-                                       .sendAsync())
+        return Mono.from(web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST)
+                                       .flowable())
                 .subscribeOn(Schedulers.boundedElastic())
                 .map(EthGetBalance::getBalance)
                 .doOnNext(balance -> log.info("address: {}, balance: {}", address, balance));

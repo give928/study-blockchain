@@ -30,8 +30,8 @@ public class Web3jCommonService {
     }
 
     public Mono<BigInteger> getChainId() {
-        return Mono.fromFuture(web3j.ethChainId()
-                                       .sendAsync())
+        return Mono.from(web3j.ethChainId()
+                                 .flowable())
                 .map(ethChainId -> {
                     if (ethChainId.hasError()) {
                         throw new Web3jErrorException(ethChainId.getError());
@@ -42,8 +42,8 @@ public class Web3jCommonService {
     }
 
     public Mono<BigInteger> getNonce(String address) {
-        return Mono.fromFuture(web3j.ethGetTransactionCount(address, DefaultBlockParameterName.LATEST)
-                                       .sendAsync())
+        return Mono.from(web3j.ethGetTransactionCount(address, DefaultBlockParameterName.LATEST)
+                                 .flowable())
                 .map(ethGetTransactionCount -> {
                     if (ethGetTransactionCount.hasError()) {
                         throw new Web3jErrorException(ethGetTransactionCount.getError());
@@ -59,8 +59,8 @@ public class Web3jCommonService {
 
     public Mono<BigInteger> getGasPrice(BigInteger gasPrice) {
         return Mono.justOrEmpty(gasPrice)
-                .switchIfEmpty(Mono.fromFuture(web3j.ethGasPrice()
-                                                       .sendAsync())
+                .switchIfEmpty(Mono.from(web3j.ethGasPrice()
+                                                 .flowable())
                                        .map(ethBlock -> {
                                            if (ethBlock.hasError()) {
                                                return DefaultGasProvider.GAS_PRICE;
@@ -75,8 +75,8 @@ public class Web3jCommonService {
 
     public Mono<BigInteger> getGasLimit(BigInteger gasLimit) {
         return Mono.justOrEmpty(gasLimit)
-                .switchIfEmpty(Mono.fromFuture(web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false)
-                                                       .sendAsync())
+                .switchIfEmpty(Mono.from(web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false)
+                                                 .flowable())
                                        .map(ethBlock -> {
                                            if (ethBlock.hasError()) {
                                                return DefaultGasProvider.GAS_LIMIT;
