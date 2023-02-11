@@ -43,7 +43,7 @@ public class CaverTransactionService implements TransactionService {
                     if (bytes32.hasError()) {
                         throw new Web3jErrorException(bytes32.getError());
                     }
-                    return caverTransactionResponseMapper.map(TransactionType.TRANSACTION, bytes32.getResult());
+                    return caverTransactionResponseMapper.of(TransactionType.TRANSACTION, bytes32.getResult());
                 })
                 .doOnNext(transactionResponse -> log.info("send transaction hash: {}", transactionResponse.getTransactionHash()))
                 .onErrorResume(throwable -> Mono.defer(() -> Mono.error(throwable)));
@@ -86,6 +86,7 @@ public class CaverTransactionService implements TransactionService {
         return DEFAULT_GAS;
     }
 
+    // @formatter:off
     @Override
     public Mono<TransactionResponse> getTransaction(String transactionHash) {
         return getTransactionReceipt(transactionHash)
@@ -94,10 +95,12 @@ public class CaverTransactionService implements TransactionService {
                                                              transactionReceiptData != null ? transactionReceiptData.toString() : null))
                 .flatMap(transactionReceiptData -> getBlock(transactionReceiptData.getBlockHash())
                         .map(ethBlock -> Tuples.of(transactionReceiptData, ethBlock)))
-                .map(tuple -> caverTransactionResponseMapper.map(TransactionType.TRANSACTION, tuple.getT1(),
-                                                                 tuple.getT2(), null));
+                .map(tuple -> caverTransactionResponseMapper.of(TransactionType.TRANSACTION, tuple.getT1(),
+                                                                tuple.getT2(), null));
     }
+    // @formatter:on
 
+    // @formatter:off
     private Mono<TransactionReceipt.TransactionReceiptData> getTransactionReceipt(String transactionHash) {
         return Mono.from(caver.rpc.klay.getTransactionReceipt(transactionHash)
                                  .flowable())
@@ -109,7 +112,9 @@ public class CaverTransactionService implements TransactionService {
                     return transactionReceipt.getResult();
                 });
     }
+    // @formatter:on
 
+    // @formatter:off
     private Mono<Block.BlockData> getBlock(String blockHash) {
         return Mono.from(caver.rpc.klay.getBlockByHash(blockHash)
                                  .flowable())
@@ -121,4 +126,5 @@ public class CaverTransactionService implements TransactionService {
                     return block.getResult();
                 });
     }
+    // @formatter:on
 }

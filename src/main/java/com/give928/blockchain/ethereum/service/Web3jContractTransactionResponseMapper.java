@@ -18,14 +18,14 @@ import java.util.TimeZone;
 
 @Service
 public class Web3jContractTransactionResponseMapper implements Web3jResponseMapper<ContractTransactionResponse> {
-    public ContractTransactionResponse mapTransaction(TransactionType transactionType, String transactionHash) {
+    public ContractTransactionResponse of(TransactionType transactionType, String transactionHash) {
         return ContractTransactionResponse.builder()
                 .transactionType(transactionType)
                 .transactionHash(transactionHash)
                 .build();
     }
 
-    public ContractTransactionResponse mapTransaction(TransactionType transactionType, Transaction transaction) {
+    public ContractTransactionResponse of(TransactionType transactionType, Transaction transaction) {
         return ContractTransactionResponse.builder()
                 .transactionType(transactionType)
                 .transactionHash(transaction.getHash())
@@ -38,9 +38,9 @@ public class Web3jContractTransactionResponseMapper implements Web3jResponseMapp
                 .build();
     }
 
-    public ContractTransactionResponse mapTransaction(TransactionType transactionType, Transaction transaction,
-                                                      TransactionReceipt transactionReceipt, EthBlock.Block block,
-                                                      String errorMessage) {
+    public ContractTransactionResponse of(TransactionType transactionType, Transaction transaction,
+                                          TransactionReceipt transactionReceipt, EthBlock.Block block,
+                                          String errorMessage) {
         LocalDateTime timestamp = null;
         if (block != null && block.getTimestamp() != null) {
             timestamp = LocalDateTime.ofInstant(Instant.ofEpochMilli(block.getTimestamp().longValueExact() * 1_000),

@@ -52,7 +52,7 @@ public class Web3jTransactionService implements TransactionService {
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(web3jTransactionHelper -> sendTransaction(transactionRequest, web3jTransactionHelper))
                 .doOnNext(transactionReceipt -> log.info("send transaction receipt: {}", transactionReceipt.toString()))
-                .map(transactionReceipt -> transactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, transactionReceipt.getTransactionHash()))
+                .map(transactionReceipt -> transactionResponseMapper.of(TransactionType.TRANSACTION, transactionReceipt.getTransactionHash()))
                 .onErrorResume(throwable -> Mono.defer(() -> Mono.error(throwable)));
     }
     // @formatter:on
@@ -83,11 +83,12 @@ public class Web3jTransactionService implements TransactionService {
                 .flatMap(web3jTransactionHelper -> sendSignedTransaction(transactionRequest, web3jTransactionHelper))
                 .doOnNext(ethSendTransaction -> log.info(
                         "transaction hash: {}", ethSendTransaction.getTransactionHash()))
-                .map(ethSendTransaction -> transactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, ethSendTransaction.getTransactionHash()))
+                .map(ethSendTransaction -> transactionResponseMapper.of(TransactionType.TRANSACTION, ethSendTransaction.getTransactionHash()))
                 .onErrorResume(throwable -> Mono.defer(() -> Mono.error(throwable)));
     }
     // @formatter:on
 
+    // @formatter:off
     private Mono<EthSendTransaction> sendSignedTransaction(TransactionRequest transactionRequest,
                                                            Web3jTransactionHelper web3jTransactionHelper) {
         return Mono.fromCallable(() -> {
@@ -110,14 +111,13 @@ public class Web3jTransactionService implements TransactionService {
                 .flatMap(signedMessage -> Mono.from(web3j.ethSendRawTransaction(Numeric.toHexString(signedMessage))
                                                             .flowable()));
     }
+    // @formatter:on
 
-    // @formatter:off
     @Override
     public Mono<TransactionResponse> getTransaction(String transactionHash) {
         return getEthTransactionAndReceiptAndBlock(transactionHash)
                 .map(tuple -> toTransactionResponse(transactionHash, tuple.getT1(), tuple.getT2(), tuple.getT3(), tuple.getT4().orElse(null)));
     }
-    // @formatter:on
 
     // @formatter:off
     public Mono<Tuple4<EthTransaction, EthGetTransactionReceipt, EthBlock, Optional<String>>> getEthTransactionAndReceiptAndBlock(String transactionHash) {
@@ -147,6 +147,7 @@ public class Web3jTransactionService implements TransactionService {
     }
     // @formatter:on
 
+    // @formatter:off
     private Mono<String> getErrorMessage(long chainId, String transactionHash) {
         return tenderlyApiWebClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/{chainId}/tx/{transactionHash}")
@@ -154,6 +155,7 @@ public class Web3jTransactionService implements TransactionService {
                 .exchangeToMono(clientResponse -> clientResponse.bodyToMono(Map.class))
                 .map(map -> (String) map.get("error_message"));
     }
+    // @formatter:on
 
     // @formatter:off
     private Mono<EthTransaction> getEthTransaction(String transactionHash) {
@@ -203,19 +205,19 @@ public class Web3jTransactionService implements TransactionService {
         // 거래가 조회되지 않음(Dropped and Replaced)
         Optional<Transaction> transactionOptional = ethTransaction.getTransaction();
         if (ethTransaction.hasError() || transactionOptional.isEmpty()) {
-            return transactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, transactionHash);
+            return transactionResponseMapper.of(TransactionType.TRANSACTION, transactionHash);
         }
         Transaction transaction = transactionOptional.get();
 
         // 거래 영수증이 조회되지 않음(Pending or Indexing, 아직 거래가 처리되지 않음)
         Optional<TransactionReceipt> transactionReceiptOptional = ethGetTransactionReceipt.getTransactionReceipt();
         if (ethGetTransactionReceipt.hasError() || transactionReceiptOptional.isEmpty()) {
-            return transactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, transaction);
+            return transactionResponseMapper.of(TransactionType.TRANSACTION, transaction);
         }
 
         // Success or Failed, 블록 정보를 조회해서 블록의 timestamp 를 거래 시각으로 설정
-        return transactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, transaction,
-                                                        transactionReceiptOptional.get(),
-                                                        ethBlock.getBlock(), errorMessage);
+        return transactionResponseMapper.of(TransactionType.TRANSACTION, transaction,
+                                            transactionReceiptOptional.get(),
+                                            ethBlock.getBlock(), errorMessage);
     }
 }

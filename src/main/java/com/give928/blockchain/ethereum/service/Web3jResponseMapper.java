@@ -6,10 +6,10 @@ import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 public interface Web3jResponseMapper<T> {
-    T mapTransaction(TransactionType transactionType, String transactionHash);
+    T of(TransactionType transactionType, String transactionHash);
 
-    T mapTransaction(TransactionType transactionType, Transaction transaction);
+    T of(TransactionType transactionType, Transaction transaction);
 
-    T mapTransaction(TransactionType transactionType, Transaction transaction, TransactionReceipt transactionReceipt,
-                     EthBlock.Block block, String errorMessage);
+    T of(TransactionType transactionType, Transaction transaction, TransactionReceipt transactionReceipt,
+         EthBlock.Block block, String errorMessage);
 }

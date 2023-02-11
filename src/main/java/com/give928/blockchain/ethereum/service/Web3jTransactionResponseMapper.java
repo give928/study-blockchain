@@ -14,14 +14,14 @@ import java.time.LocalDateTime;
 
 @Service
 public class Web3jTransactionResponseMapper implements Web3jResponseMapper<TransactionResponse> {
-    public TransactionResponse mapTransaction(TransactionType transactionType, String transactionHash) {
+    public TransactionResponse of(TransactionType transactionType, String transactionHash) {
         return TransactionResponse.builder()
                 .transactionType(transactionType)
                 .transactionHash(transactionHash)
                 .build();
     }
 
-    public TransactionResponse mapTransaction(TransactionType transactionType, Transaction transaction) {
+    public TransactionResponse of(TransactionType transactionType, Transaction transaction) {
         return TransactionResponse.builder()
                 .transactionType(transactionType)
                 .transactionHash(transaction.getHash())
@@ -34,9 +34,9 @@ public class Web3jTransactionResponseMapper implements Web3jResponseMapper<Trans
                 .build();
     }
 
-    public TransactionResponse mapTransaction(TransactionType transactionType, Transaction transaction,
-                                              TransactionReceipt transactionReceipt, EthBlock.Block block,
-                                              String errorMessage) {
+    public TransactionResponse of(TransactionType transactionType, Transaction transaction,
+                                  TransactionReceipt transactionReceipt, EthBlock.Block block,
+                                  String errorMessage) {
         LocalDateTime timestamp = null;
         if (block != null && block.getTimestamp() != null) {
             timestamp = HexadecimalUtil.toLocalDateTime(block.getTimestamp());

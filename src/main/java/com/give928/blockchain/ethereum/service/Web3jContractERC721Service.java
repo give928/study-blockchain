@@ -34,7 +34,7 @@ public class Web3jContractERC721Service implements ContractService {
     private final Web3j web3j;
     private final Web3jCommonService web3JCommonService;
     private final Web3jTransactionService web3jTransactionService;
-    private final Web3jContractTransactionResponseMapper contractTransactionResponseMapper;
+    private final Web3jContractTransactionResponseMapper web3jContractTransactionResponseMapper;
     private final ObjectMapper objectMapper;
 
     @Value("${ethereum.private-key}")
@@ -42,12 +42,12 @@ public class Web3jContractERC721Service implements ContractService {
 
     public Web3jContractERC721Service(Web3j web3j, Web3jCommonService web3JCommonService,
                                       Web3jTransactionService web3jTransactionService,
-                                      Web3jContractTransactionResponseMapper contractTransactionResponseMapper,
+                                      Web3jContractTransactionResponseMapper web3jContractTransactionResponseMapper,
                                       ObjectMapper objectMapper) {
         this.web3j = web3j;
         this.web3JCommonService = web3JCommonService;
         this.web3jTransactionService = web3jTransactionService;
-        this.contractTransactionResponseMapper = contractTransactionResponseMapper;
+        this.web3jContractTransactionResponseMapper = web3jContractTransactionResponseMapper;
         this.objectMapper = objectMapper;
     }
 
@@ -91,11 +91,13 @@ public class Web3jContractERC721Service implements ContractService {
     }
     // @formatter:on
 
+    // @formatter:off
     private Mono<NFTERC721> loadViewNFTERC721(String contractAddress) {
         return web3JCommonService.newDefaultTransactionHelper(privateKey)
                 .subscribeOn(Schedulers.boundedElastic())
                 .map(web3jTransactionHelper -> loadNFTERC721(contractAddress, web3jTransactionHelper));
     }
+    // @formatter:on
 
     private NFTERC721 loadNFTERC721(String contractAddress, Web3jTransactionHelper web3jTransactionHelper) {
         FastRawTransactionManager fastRawTransactionManager = web3jTransactionHelper.getFastRawTransactionManager();
@@ -147,19 +149,19 @@ public class Web3jContractERC721Service implements ContractService {
         // 거래가 조회되지 않음(Dropped and Replaced)
         Optional<Transaction> transactionOptional = ethTransaction.getTransaction();
         if (ethTransaction.hasError() || transactionOptional.isEmpty()) {
-            return contractTransactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, transactionHash);
+            return web3jContractTransactionResponseMapper.of(TransactionType.TRANSACTION, transactionHash);
         }
         Transaction transaction = transactionOptional.get();
 
         // 거래 영수증이 조회되지 않음(Pending or Indexing, 아직 거래가 처리되지 않음)
         Optional<TransactionReceipt> transactionReceiptOptional = ethGetTransactionReceipt.getTransactionReceipt();
         if (ethGetTransactionReceipt.hasError() || transactionReceiptOptional.isEmpty()) {
-            return contractTransactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, transaction);
+            return web3jContractTransactionResponseMapper.of(TransactionType.TRANSACTION, transaction);
         }
 
         // Success or Failed, 블록 정보를 조회해서 블록의 timestamp 를 거래 시각으로 설정
-        return contractTransactionResponseMapper.mapTransaction(TransactionType.TRANSACTION, transaction,
-                                                                transactionReceiptOptional.get(), ethBlock.getBlock(), errorMessage);
+        return web3jContractTransactionResponseMapper.of(TransactionType.TRANSACTION, transaction,
+                                                         transactionReceiptOptional.get(), ethBlock.getBlock(), errorMessage);
     }
 
     public Mono<BalanceResponse> balanceOf(String contractAddress, String address) {
@@ -195,8 +197,8 @@ public class Web3jContractERC721Service implements ContractService {
                                 .flowable()))
                 .doOnNext(transactionReceipt -> log.info("safe transfer token transaction receipt: {}",
                                                          transactionReceipt.toString()))
-                .map(transactionReceipt -> contractTransactionResponseMapper.mapTransaction(TransactionType.TRANSACTION,
-                                                                                            transactionReceipt.getTransactionHash()));
+                .map(transactionReceipt -> web3jContractTransactionResponseMapper.of(TransactionType.TRANSACTION,
+                                                                                     transactionReceipt.getTransactionHash()));
     }
 
     public Mono<Boolean> paused(String contractAddress) {
@@ -210,8 +212,8 @@ public class Web3jContractERC721Service implements ContractService {
                 .flatMap(nfterc721 -> Mono.from(nfterc721.burn(tokenId)
                                                         .flowable()))
                 .doOnNext(transactionReceipt -> log.info("burn token transaction receipt: {}", transactionReceipt.toString()))
-                .map(transactionReceipt -> contractTransactionResponseMapper.mapTransaction(TransactionType.BURN,
-                                                                                            transactionReceipt.getTransactionHash()));
+                .map(transactionReceipt -> web3jContractTransactionResponseMapper.of(TransactionType.BURN,
+                                                                                     transactionReceipt.getTransactionHash()));
 
     }
 
@@ -220,8 +222,8 @@ public class Web3jContractERC721Service implements ContractService {
                 .flatMap(nfterc721 -> Mono.from(nfterc721.pause()
                                                         .flowable()))
                 .doOnNext(transactionReceipt -> log.info("pause contract transaction receipt: {}", transactionReceipt.toString()))
-                .map(transactionReceipt -> contractTransactionResponseMapper.mapTransaction(TransactionType.PAUSE,
-                                                                                            transactionReceipt.getTransactionHash()));
+                .map(transactionReceipt -> web3jContractTransactionResponseMapper.of(TransactionType.PAUSE,
+                                                                                     transactionReceipt.getTransactionHash()));
     }
 
     public Mono<ContractTransactionResponse> unpause(String contractAddress) {
@@ -229,7 +231,7 @@ public class Web3jContractERC721Service implements ContractService {
                 .flatMap(nfterc721 -> Mono.from(nfterc721.unpause()
                                                         .flowable()))
                 .doOnNext(transactionReceipt -> log.info("unpause contract transaction receipt: {}", transactionReceipt.toString()))
-                .map(transactionReceipt -> contractTransactionResponseMapper.mapTransaction(TransactionType.UNPAUSE,
-                                                                                            transactionReceipt.getTransactionHash()));
+                .map(transactionReceipt -> web3jContractTransactionResponseMapper.of(TransactionType.UNPAUSE,
+                                                                                     transactionReceipt.getTransactionHash()));
     }
 }
