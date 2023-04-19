@@ -238,7 +238,7 @@
 - 거래 생성: 다른 지갑으로 코인(wei) 보내기
   - Specifying the Chain Id on Transactions (EIP-155)
     - London fork 부터 TransactionManager 에서 chain id 를 지정해야 한다.
-    - 트랜잭션이 다른 체인으로 다시 브로드케스트되는 것을 방지한다.
+    - 트랜잭션이 다른 체인으로 다시 브로드캐스트되는 것을 방지한다.
     - chain id 를 지정하지 않고 거래 시도할 때 예외 메시지: Error processing transaction request: only replay-protected (EIP-155) transactions allowed over RPC
   - 거래 상태
     - Pending
